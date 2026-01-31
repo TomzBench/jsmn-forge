@@ -8,25 +8,6 @@ importers:
 
   .: {}
 
-  packages/parse:
-    dependencies:
-      '@scalar/openapi-parser':
-        specifier: ^0.24.5
-        version: 0.24.5
-      '@scalar/openapi-types':
-        specifier: ^0.5.3
-        version: 0.5.3
-    devDependencies:
-      '@types/node':
-        specifier: ^25.1.0
-        version: 25.1.0
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.4
-        version: 3.2.4(@types/node@25.1.0)(yaml@2.8.2)
-
   parse:
     dependencies:
       '@scalar/openapi-parser':

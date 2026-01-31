@@ -22,7 +22,7 @@ ignore = [
 ]
 
 [lint.isort]
-known-first-party = ["jsmn-jam"]
+known-first-party = ["jsmn-forge"]
 
 [format]
 quote-style = "double"
