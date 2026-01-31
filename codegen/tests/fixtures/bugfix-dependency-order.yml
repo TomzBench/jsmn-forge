@@ -1,0 +1,13 @@
+thing:
+  type: object
+  required: [inner]
+  properties:
+    inner:
+      $ref: boom
+boom:
+  type: object
+  required: [a]
+  properties:
+    a:
+      type: number
+      format: uint32

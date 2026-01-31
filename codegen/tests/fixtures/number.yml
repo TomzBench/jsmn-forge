@@ -1,0 +1,24 @@
+u8:
+  type: number
+  format: uint8
+i8:
+  type: number
+  format: int8
+u16:
+  type: number
+  format: uint16
+i16:
+  type: number
+  format: int16
+u32:
+  type: number
+  format: uint32
+i32:
+  type: number
+  format: int32
+u64:
+  type: number
+  format: uint64
+i64:
+  type: number
+  format: int64

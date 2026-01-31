@@ -1,0 +1,6 @@
+thing:
+  type: object
+  required: [boom]
+  properties:
+    boom:
+      type: "null"

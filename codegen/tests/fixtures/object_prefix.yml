@@ -1,0 +1,69 @@
+thing:
+  type: object
+  required: [u8, i8, u16, i16, u32, i32, u64, i64, bool, s32, many_numbers, nested, multi_string, a_1]
+  properties:
+    u8:
+      type: number
+      format: uint8
+    i8:
+      type: number
+      format: int8
+    u16:
+      type: number
+      format: uint16
+    i16:
+      type: number
+      format: int16
+    u32:
+      type: number
+      format: uint32
+    i32:
+      type: number
+      format: int32
+    u64:
+      type: number
+      format: uint64
+    i64:
+      type: number
+      format: int64
+    bool:
+      type: bool
+    s32:
+      type: string
+      maxLength: 32
+    many_numbers:
+      type: array
+      minItems: 5
+      maxItems: 5
+      items:
+        type: number
+        format: uint32
+    nested:
+      type: object
+      required: [foo]
+      properties:
+        foo:
+          type: number
+          format: int32
+    multi_string:
+      type: array
+      minItems: 3
+      maxItems: 3
+      items:
+        type: array
+        minItems: 4
+        maxItems: 4
+        items:
+          type: string
+          maxLength: 9
+    a_1:
+      type: array
+      minItems: 3
+      maxItems: 3
+      items:
+        type: object
+        required: [foo]
+        properties:
+          foo:
+            type: number
+            format: int64

@@ -1,0 +1,13 @@
+resources:
+  - name: device
+    version: 0
+    http:
+      - schemas/device.openapi.yaml
+    if:
+      - CONFIG_DEVICE_ENABLE
+  - name: network
+    version: 0
+    http:
+      - schemas/network.openapi.yaml
+    if:
+      - CONFIG_NETWORK_ENABLE

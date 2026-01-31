@@ -1,0 +1,47 @@
+object:
+  type: object
+  title: object
+  description: an object containing every type
+  required: ["u8", "i8", "u16", "i16", "u32", "i32", "u64", "i64", "boolish", "null", "s12"]
+  properties:
+    u8:
+      type: number
+      format: uint8
+    i8:
+      type: number
+      format: int8
+    u16:
+      type: number
+      format: uint16
+    i16:
+      type: number
+      format: int16
+    u32:
+      type: number
+      format: uint32
+    i32:
+      type: number
+      format: int32
+    u64:
+      type: number
+      format: uint64
+    i64:
+      type: number
+      format: int64
+    boolish:
+      type: bool
+    s12:
+      type: string
+      maxLength: 12
+variable_object:
+  type: array
+  minItems: 3
+  maxItems: 8
+  items:
+    $ref: object
+fixed_object:
+  type: array
+  minItems: 8
+  maxItems: 8
+  items:
+    $ref: object
