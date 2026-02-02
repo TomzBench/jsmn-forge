@@ -1,0 +1,12 @@
+{% extends "furo/base.html" %}
+
+{% block extrahead %}
+<script>
+// Set localStorage BEFORE Furo's <body> script reads it.
+// Furo's init does: document.body.dataset.theme = localStorage.getItem("theme") || "auto"
+// Without this, first-time visitors with OS dark mode get "auto" → dark.
+if (!localStorage.getItem("theme")) {
+    localStorage.setItem("theme", "light");
+}
+</script>
+{% endblock %}

@@ -51,5 +51,8 @@ coverage/
 htmlcov/
 .pytest_cache/
 
+# Sphinx
+docs/_build/
+
 # Claude
 .claude/

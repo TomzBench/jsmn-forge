@@ -1,0 +1,267 @@
+/* Altronix box theme — light mode only */
+body:not([data-theme="dark"]) .sidebar-drawer {
+    background: #0072CE !important;
+    position: relative;
+}
+
+/* Mesh grid + viewport-fixed fade via pseudo-element */
+body:not([data-theme="dark"]) .sidebar-drawer::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: inherit;
+    height: 100vh;
+    background:
+        /* White mesh grid overlay */
+        linear-gradient(
+            rgba(255, 255, 255, 0.08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.08) 1px,
+            transparent 1px
+        ),
+        /* Dark navy fade pinned to viewport bottom */
+        linear-gradient(
+            to bottom,
+            transparent 50%,
+            rgba(0, 58, 107, 0.6) 85%,
+            #1A1A2E 100%
+        );
+    background-size:
+        24px 24px,
+        24px 24px,
+        100% 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Keep sidebar content above the pseudo-element */
+body:not([data-theme="dark"]) .sidebar-scroll {
+    background: transparent !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Tighten the logo spacing */
+body:not([data-theme="dark"]) .sidebar-brand {
+    padding: 1.2rem 1rem;
+}
+
+/* Subtle top accent line on content area — ties sidebar blue into the page */
+body:not([data-theme="dark"]) .main {
+    border-top: 3px solid #0072CE;
+}
+
+/* Code blocks: slightly cooler tint with a left accent */
+body:not([data-theme="dark"]) pre {
+    border-left: 3px solid #0072CE;
+}
+
+/* Tables: blue-tinted header row */
+body:not([data-theme="dark"]) table thead {
+    background: #DDE6F0;
+}
+
+body:not([data-theme="dark"]) table thead th {
+    color: #1A2A3A;
+}
+
+/* ==========================================================================
+   Headings — subtle Altronix blue distinction from body text
+   ========================================================================== */
+
+/* Light mode headings */
+body:not([data-theme="dark"]) h1 {
+    color: #003A6B;
+    border-bottom: 2px solid #0072CE;
+    padding-bottom: 0.3em;
+}
+
+body:not([data-theme="dark"]) h2 {
+    color: #004A85;
+    border-bottom: 1px solid #D0D9E4;
+    padding-bottom: 0.25em;
+}
+
+body:not([data-theme="dark"]) h3,
+body:not([data-theme="dark"]) h4 {
+    color: #005DA6;
+}
+
+/* Dark mode headings */
+body[data-theme="dark"] h1 {
+    color: #5BB0EC;
+    border-bottom: 2px solid #1A3050;
+    padding-bottom: 0.3em;
+}
+
+body[data-theme="dark"] h2 {
+    color: #4DA6E8;
+    border-bottom: 1px solid #1E2A42;
+    padding-bottom: 0.25em;
+}
+
+body[data-theme="dark"] h3,
+body[data-theme="dark"] h4 {
+    color: #4DA6E8;
+}
+
+/* Prefers dark — headings for "auto" mode */
+@media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) h1 {
+        color: #5BB0EC;
+        border-bottom: 2px solid #1A3050;
+        padding-bottom: 0.3em;
+    }
+
+    body:not([data-theme="light"]) h2 {
+        color: #4DA6E8;
+        border-bottom: 1px solid #1E2A42;
+        padding-bottom: 0.25em;
+    }
+
+    body:not([data-theme="light"]) h3,
+    body:not([data-theme="light"]) h4 {
+        color: #4DA6E8;
+    }
+}
+
+/* ==========================================================================
+   Dark mode — Altronix box bottom-band treatment
+   ========================================================================== */
+
+/* Sidebar: deep navy with subtle mesh and upward blue glow */
+body[data-theme="dark"] .sidebar-drawer {
+    background: #0A0F1E !important;
+    position: relative;
+}
+
+body[data-theme="dark"] .sidebar-drawer::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: inherit;
+    height: 100vh;
+    background:
+        /* Faint mesh grid — same pattern, more subtle */
+        linear-gradient(
+            rgba(77, 166, 232, 0.04) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(77, 166, 232, 0.04) 1px,
+            transparent 1px
+        ),
+        /* Dark navy gradient — deep bottom, hint of blue at top */
+        linear-gradient(
+            to bottom,
+            #0F1A30 0%,
+            #0A0F1E 40%,
+            #060A14 100%
+        );
+    background-size:
+        24px 24px,
+        24px 24px,
+        100% 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+body[data-theme="dark"] .sidebar-scroll {
+    background: transparent !important;
+    position: relative;
+    z-index: 1;
+}
+
+body[data-theme="dark"] .sidebar-brand {
+    padding: 1.2rem 1rem;
+}
+
+/* Top accent — muted blue line */
+body[data-theme="dark"] .main {
+    border-top: 3px solid #1A3050;
+}
+
+/* Code blocks: blue-tinted with accent */
+body[data-theme="dark"] pre {
+    border-left: 3px solid #1A3050;
+}
+
+/* Tables: dark blue header */
+body[data-theme="dark"] table thead {
+    background: #131C2E;
+}
+
+body[data-theme="dark"] table thead th {
+    color: #C0D0E0;
+}
+
+/* Prefers dark — same rules for "auto" mode */
+@media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) .sidebar-drawer {
+        background: #0A0F1E !important;
+        position: relative;
+    }
+
+    body:not([data-theme="light"]) .sidebar-drawer::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: inherit;
+        height: 100vh;
+        background:
+            linear-gradient(
+                rgba(77, 166, 232, 0.04) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                90deg,
+                rgba(77, 166, 232, 0.04) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                #0F1A30 0%,
+                #0A0F1E 40%,
+                #060A14 100%
+            );
+        background-size:
+            24px 24px,
+            24px 24px,
+            100% 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    body:not([data-theme="light"]) .sidebar-scroll {
+        background: transparent !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    body:not([data-theme="light"]) .sidebar-brand {
+        padding: 1.2rem 1rem;
+    }
+
+    body:not([data-theme="light"]) .main {
+        border-top: 3px solid #1A3050;
+    }
+
+    body:not([data-theme="light"]) pre {
+        border-left: 3px solid #1A3050;
+    }
+
+    body:not([data-theme="light"]) table thead {
+        background: #131C2E;
+    }
+
+    body:not([data-theme="light"]) table thead th {
+        color: #C0D0E0;
+    }
+}
