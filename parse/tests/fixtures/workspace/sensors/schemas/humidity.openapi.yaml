@@ -1,0 +1,29 @@
+openapi: "3.1.0"
+info:
+  title: Sensors Humidity
+  version: "0.1.0"
+paths:
+  /api/v1/humidity:
+    get:
+      operationId: getHumidity
+      responses:
+        "200":
+          description: Humidity reading
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/humidity_reading"
+components:
+  schemas:
+    humidity_reading:
+      x-jsmn-forge-as: "${id}"
+      type: object
+      required:
+        - percent
+        - auth
+      properties:
+        percent:
+          type: integer
+          format: uint8
+        auth:
+          $ref: "sdk:auth#/components/schemas/auth_token"

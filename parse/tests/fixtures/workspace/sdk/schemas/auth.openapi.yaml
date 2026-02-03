@@ -1,0 +1,30 @@
+openapi: "3.1.0"
+info:
+  title: SDK Auth
+  version: "0.1.0"
+paths:
+  /api/v1/auth:
+    post:
+      operationId: authenticate
+      responses:
+        "200":
+          description: Auth token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/auth_token"
+components:
+  schemas:
+    auth_token:
+      x-jsmn-forge-as: "${id}"
+      type: object
+      required:
+        - token
+        - expires
+      properties:
+        token:
+          type: string
+          maxLength: 128
+        expires:
+          type: integer
+          format: uint32

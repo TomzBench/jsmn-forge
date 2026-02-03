@@ -1,0 +1,29 @@
+openapi: "3.1.0"
+info:
+  title: Network WiFi
+  version: "0.1.0"
+paths:
+  /api/v1/wifi:
+    get:
+      operationId: getWifi
+      responses:
+        "200":
+          description: WiFi configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/wifi_config"
+components:
+  schemas:
+    wifi_config:
+      x-jsmn-forge-as: "${id}"
+      type: object
+      required:
+        - ssid
+        - status
+      properties:
+        ssid:
+          type: string
+          maxLength: 32
+        status:
+          $ref: "sdk:common#/components/schemas/device_status"

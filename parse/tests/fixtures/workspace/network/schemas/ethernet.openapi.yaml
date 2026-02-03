@@ -1,0 +1,33 @@
+openapi: "3.1.0"
+info:
+  title: Network Ethernet
+  version: "0.1.0"
+paths:
+  /api/v1/ethernet:
+    get:
+      operationId: getEthernet
+      responses:
+        "200":
+          description: Ethernet configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ethernet_config"
+components:
+  schemas:
+    ethernet_config:
+      x-jsmn-forge-as: "${id}"
+      type: object
+      required:
+        - ip
+        - mask
+        - status
+      properties:
+        ip:
+          type: string
+          maxLength: 15
+        mask:
+          type: string
+          maxLength: 15
+        status:
+          $ref: "sdk:common#/components/schemas/device_status"

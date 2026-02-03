@@ -4,6 +4,7 @@
     "target": "ES2024",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "rewriteRelativeImportExtensions": true,
     "lib": ["ES2024"],
     "outDir": "dist",
     "rootDir": "src",

@@ -1,0 +1,10 @@
+name: network
+resources:
+  - name: ethernet
+    version: 0
+    http:
+      - schemas/ethernet.openapi.yaml
+  - name: wifi
+    version: 0
+    http:
+      - schemas/wifi.openapi.yaml

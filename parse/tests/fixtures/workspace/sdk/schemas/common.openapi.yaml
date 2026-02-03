@@ -1,0 +1,29 @@
+openapi: "3.1.0"
+info:
+  title: SDK Common
+  version: "0.1.0"
+paths:
+  /api/v1/status:
+    get:
+      operationId: getStatus
+      responses:
+        "200":
+          description: Device status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/device_status"
+components:
+  schemas:
+    device_status:
+      x-jsmn-forge-as: "${id}"
+      type: object
+      required:
+        - online
+        - uptime
+      properties:
+        online:
+          type: boolean
+        uptime:
+          type: integer
+          format: uint32

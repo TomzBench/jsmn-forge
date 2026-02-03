@@ -1,108 +1,74 @@
 import { describe, it, expect } from "vitest";
-import { dereference } from "@scalar/openapi-parser";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import { createPlugin, SchemaRegistry } from "../src/discover.ts";
 
-const sampleSpec = {
-  openapi: "3.1.0",
-  info: { title: "Test API", version: "1.0.0" },
-  paths: {
-    "/users/{id}": {
-      get: {
-        operationId: "getUser",
-        parameters: [
-          {
-            name: "id",
-            in: "path",
-            required: true,
-            schema: { type: "integer", format: "int64" },
-          },
-          {
-            name: "include",
-            in: "query",
-            schema: { type: "array", items: { type: "string" } },
-          },
-        ],
-        responses: {
-          "200": {
-            description: "Success",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/User" },
-              },
-            },
-          },
-        },
-      },
-      post: {
-        operationId: "updateUser",
-        requestBody: {
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/UserUpdate" },
-            },
-          },
-        },
-        responses: {
-          "200": { description: "Success" },
-        },
-      },
-    },
-  },
-  components: {
-    schemas: {
-      User: {
-        type: "object",
-        required: ["id", "name"],
-        properties: {
-          id: { type: "integer", format: "int64" },
-          name: { type: "string" },
-          email: { type: "string", format: "email" },
-          age: { type: "integer", format: "uint8" },
-          active: { type: "boolean" },
-          tags: { type: "array", items: { type: "string" } },
-          metadata: {
-            type: "object",
-            additionalProperties: { type: "string" },
-          },
-        },
-      },
-      UserUpdate: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          email: { type: "string", format: "email" },
-        },
-      },
-    },
-  },
-};
+//   workspace/
+//   ├── sdk/
+//   │   ├── .jsmn-forge.yaml              name: sdk
+//   │   └── schemas/
+//   │       ├── common.openapi.yaml       device_status (bool + uint32)
+//   │       └── auth.openapi.yaml         auth_token (string + uint32)
+//   ├── network/
+//   │   ├── .jsmn-forge.yaml              name: network
+//   │   └── schemas/
+//   │       ├── ethernet.openapi.yaml     ethernet_config → sdk:common#device_status
+//   │       └── wifi.openapi.yaml         wifi_config → sdk:common#device_status
+//   └── sensors/
+//       ├── .jsmn-forge.yaml              name: sensors
+//       └── schemas/
+//           ├── temperature.openapi.yaml  temperature_reading → sdk:common#device_status
+//           └── humidity.openapi.yaml     humidity_reading → sdk:auth#auth_token
 
-describe("parse", () => {
-  it("should dereference spec and show structure", () => {
-    const result = dereference(sampleSpec);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+function fixture(...segs: string[]): string {
+  return resolve(__dirname, "fixtures", ...segs);
+}
 
-    console.log("\n=== DEREFERENCED SPEC ===\n");
-    console.log(JSON.stringify(result, null, 2));
+describe("plugin", () => {
+  it("should detect all schemas", async () => {
+    const workspace = ["sdk", "network", "sensors"].map((p) =>
+      fixture("workspace", p)
+    );
+    const registry = await SchemaRegistry.scanDirectories(workspace);
 
-    expect(result.schema).toBeDefined();
+    const schemas = [...registry.schemas()];
+    const keys = new Set(schemas.map((s) => `${s.module}:${s.resource}`));
+    expect(keys).toEqual(
+      new Set([
+        "sdk:common",
+        "sdk:auth",
+        "network:ethernet",
+        "network:wifi",
+        "sensors:temperature",
+        "sensors:humidity",
+      ])
+    );
+
+    // every declared spec path should be present
+    const allPaths = new Set(schemas.flatMap((s) => s.paths));
+    expect(allPaths).toEqual(
+      new Set([
+        fixture("workspace", "sdk", "schemas", "common.openapi.yaml"),
+        fixture("workspace", "sdk", "schemas", "auth.openapi.yaml"),
+        fixture("workspace", "network", "schemas", "ethernet.openapi.yaml"),
+        fixture("workspace", "network", "schemas", "wifi.openapi.yaml"),
+        fixture("workspace", "sensors", "schemas", "temperature.openapi.yaml"),
+        fixture("workspace", "sensors", "schemas", "humidity.openapi.yaml"),
+      ])
+    );
+
+    // no async schemas in this fixture
+    expect([...registry.asyncSchemas()]).toHaveLength(0);
   });
 
-  it("should show schema structure", () => {
-    const result = dereference(sampleSpec);
-    const schemas = result.schema?.components?.schemas;
-
-    console.log("\n=== SCHEMAS ===\n");
-    console.log(JSON.stringify(schemas, null, 2));
-
-    expect(schemas?.User).toBeDefined();
-  });
-
-  it("should show path/operation structure", () => {
-    const result = dereference(sampleSpec);
-    const paths = result.schema?.paths;
-
-    console.log("\n=== PATHS ===\n");
-    console.log(JSON.stringify(paths, null, 2));
-
-    expect(paths?.["/users/{id}"]).toBeDefined();
+  it("should plugin", async () => {
+    const workspace = ["sdk", "network", "sensors"].map((p) =>
+      fixture("workspace", p)
+    );
+    const registry = await SchemaRegistry.scanDirectories(workspace);
+    const plugin = createPlugin(registry);
+    console.log(registry);
+    console.log(plugin);
   });
 });

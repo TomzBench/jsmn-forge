@@ -1,0 +1,10 @@
+name: sdk
+resources:
+  - name: common
+    version: 0
+    http:
+      - schemas/common.openapi.yaml
+  - name: auth
+    version: 0
+    http:
+      - schemas/auth.openapi.yaml
