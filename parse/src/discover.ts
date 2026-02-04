@@ -106,7 +106,7 @@ export class SchemaRegistry {
   //! Resolve a jsmn-forge $ref, joining and caching specs on first access
   async resolve(value: string): Promise<ResolveResult> {
     // We assume specs exist because of validator driver (ok?)
-    const reference = parseRef(value) as ValidatorMatches;
+    const reference = parseRef(value) as RefMatch;
     const cacheKey = `${reference.module}:${reference.resource}`;
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey) as ResolveResult;
@@ -179,31 +179,22 @@ async function parseWorkspace(
   }
 }
 
-//! Helper to extract our groups from our regex when parsing jsmn-forge $ref's
-interface ValidatorMatches {
-  //! The module name from the $ref expression
+//! Parsed module:resource ref. The bundler handles #/path navigation itself —
+//! our plugin only sees the URI portion (e.g. "sdk:common").
+interface RefMatch {
   module: string;
-  //! The resource name from the $ref expression
   resource: string;
-  //! The remaining fragment of the $ref expression (not parsed by our plugin)
-  path: string;
 }
 
-//! Regex helper for parsing our plugin $ref:
-const refMatch =
-  /^(?<module>[a-zA-Z0-9_]+):(?<resource>[a-zA-Z0-9_]+)#\/(?<path>[\.-a-zA-Z0-9\/_]+)/;
-function parseRef(value: string): ValidatorMatches | undefined {
+//! Matches the "module:resource" URI that bundle() passes to loader plugins.
+const refMatch = /^(?<module>[a-zA-Z0-9_]+):(?<resource>[a-zA-Z0-9_]+)$/;
+function parseRef(value: string): RefMatch | undefined {
   const match = refMatch.exec(value);
-  const groups = match && (match.groups as Partial<ValidatorMatches>);
-  if (groups && groups.module && groups.resource && groups.path) {
-    return {
-      module: groups.module,
-      resource: groups.resource,
-      path: groups.path,
-    };
-  } else {
-    return undefined;
+  const groups = match && (match.groups as Partial<RefMatch>);
+  if (groups && groups.module && groups.resource) {
+    return { module: groups.module, resource: groups.resource };
   }
+  return undefined;
 }
 
 //! return a function for validating jsmn-forge $ref. $ref must exist

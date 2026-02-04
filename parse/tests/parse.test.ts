@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import path from "node:path";
+import { bundle } from "@scalar/json-magic/bundle";
+import { readFiles, parseYaml } from "@scalar/json-magic/bundle/plugins/node";
+import { resolve } from "../src/resolve.ts";
+import { join } from "@scalar/openapi-parser";
+import YAML from "yaml";
 import { createPlugin, SchemaRegistry } from "../src/discover.ts";
 
 //   workspace/
@@ -20,9 +25,9 @@ import { createPlugin, SchemaRegistry } from "../src/discover.ts";
 //           ├── temperature.openapi.yaml  temperature_reading → sdk:common#device_status
 //           └── humidity.openapi.yaml     humidity_reading → sdk:auth#auth_token
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function fixture(...segs: string[]): string {
-  return resolve(__dirname, "fixtures", ...segs);
+  return path.resolve(__dirname, "fixtures", ...segs);
 }
 
 describe("plugin", () => {
@@ -58,17 +63,57 @@ describe("plugin", () => {
       ])
     );
 
-    // no async schemas in this fixture
+    // TODO add some async fixtures
     expect([...registry.asyncSchemas()]).toHaveLength(0);
   });
+});
 
-  it("should plugin", async () => {
+describe("parse pipeline", () => {
+  it("bundles, resolves, and joins all workspace specs", async () => {
     const workspace = ["sdk", "network", "sensors"].map((p) =>
       fixture("workspace", p)
     );
     const registry = await SchemaRegistry.scanDirectories(workspace);
     const plugin = createPlugin(registry);
-    console.log(registry);
-    console.log(plugin);
+    const plugins = [plugin, readFiles(), parseYaml()];
+
+    const specs: Record<string, unknown>[] = [];
+    for (const entry of registry.schemas()) {
+      const bundled = await bundle(
+        { $ref: entry.paths[0]! },
+        { plugins, treeShake: false }
+      );
+      specs.push(resolve(bundled as Record<string, unknown>));
+    }
+
+    const joined = await join(specs);
+    expect(joined.ok).toBe(true);
+    const doc = joined.document as Record<string, any>;
+
+    // all 6 paths present
+    expect(Object.keys(doc.paths)).toHaveLength(6);
+
+    // required arrays preserved
+    const ethernetSchema = doc.components.schemas.ethernet_config;
+    expect(Array.isArray(ethernetSchema.required)).toBe(true);
+    expect(ethernetSchema.required).toContain("ip");
+
+    // cross-module $ref resolved to inline object
+    const deviceStatus = ethernetSchema.properties.status;
+    expect(deviceStatus).toHaveProperty("type");
+    expect(deviceStatus).not.toHaveProperty("$ref");
+
+    // no bundle bookkeeping in output
+    for (const spec of specs) {
+      expect(spec).not.toHaveProperty("x-ext");
+      expect(spec).not.toHaveProperty("x-ext-urls");
+    }
+
+    // YAML round-trip preserves structure
+    const output = YAML.stringify(doc);
+    const reparsed = YAML.parse(output);
+    expect(
+      Array.isArray(reparsed.components.schemas.ethernet_config.required)
+    ).toBe(true);
   });
 });

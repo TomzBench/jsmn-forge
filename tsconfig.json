@@ -7,7 +7,7 @@
     "rewriteRelativeImportExtensions": true,
     "lib": ["ES2024"],
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "parse/src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -23,5 +23,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true
-  }
+  },
+  "include": ["parse/src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
