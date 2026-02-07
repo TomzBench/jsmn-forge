@@ -2,9 +2,9 @@ name: network
 resources:
   - name: ethernet
     version: 0
-    http:
+    openapi:
       - schemas/ethernet.openapi.yaml
   - name: wifi
     version: 0
-    http:
+    openapi:
       - schemas/wifi.openapi.yaml

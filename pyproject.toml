@@ -2,16 +2,24 @@
 name = "jsmn-forge"
 version = "0.1.0"
 description = ""
-requires-python = ">=3.11"
-dependencies = []
+requires-python = ">=3.12"
+dependencies = [
+    "jsonschema>=4.23",
+    "referencing>=0.35",
+    "ruamel-yaml>=0.19.1",
+]
 
-[project.optional-dependencies]
+[project.scripts]
+jsmn-forge-codegen = "jsmn_forge.cli:main"
+
+[dependency-groups]
 dev = [
     "basedpyright>=1.22.0",
     "clang-format>=21.1.8",
     "cmake-format[yaml]>=0.6.13",
     "meson>=1.10.0",
     "mypy>=1.13.0",
+    "pytest>=9.0.2",
     "radon>=6.0.1",
     "ruff>=0.8.0",
 ]
@@ -20,3 +28,10 @@ docs = [
     "furo>=2024.8.6",
     "myst-parser>=4.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["codegen/src/jsmn_forge"]

@@ -1,0 +1,1 @@
+"""jsmn-forge code generator."""

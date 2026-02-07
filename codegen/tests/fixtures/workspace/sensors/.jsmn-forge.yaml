@@ -2,9 +2,9 @@ name: sensors
 resources:
   - name: temperature
     version: 0
-    http:
+    openapi:
       - schemas/temperature.openapi.yaml
   - name: humidity
     version: 0
-    http:
+    openapi:
       - schemas/humidity.openapi.yaml
