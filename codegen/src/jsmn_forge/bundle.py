@@ -1,11 +1,10 @@
 """Workspace parsing utilities"""
 
-import os
 import re
 from pathlib import Path
 from typing import NamedTuple, TypedDict, cast
 
-from jsonschema import validate
+from jsonschema import validate  # type: ignore[import-untyped]
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 from ruamel.yaml import YAML
@@ -70,7 +69,7 @@ class Uri(NamedTuple):
     version: int
 
 
-def _parse_workspace(path: str | Path, config: str) -> Config:
+def _parse_workspace(path: Path | str, config: Path) -> Config:
     root = Path(path).absolute()
     name = root.name.split(".")[0]
     doc = yaml.load(root / config)
@@ -115,8 +114,8 @@ def bundle(scheme: str, workspace: list[Path] | list[str]) -> Registry:
     configs = [
         _parse_workspace(module, path)
         for module in workspace
-        for path in os.listdir(module)
-        if RE_CONFIG.match(path)
+        for path in Path(module).iterdir()
+        if RE_CONFIG.match(str(path))
     ]
 
     # flatten resources into a keyable registry

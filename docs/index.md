@@ -8,4 +8,8 @@ heap allocation.
 :maxdepth: 2
 
 design
+audit
+jsonschema-ref
+writing-schemas
+python-cheatsheet
 ```

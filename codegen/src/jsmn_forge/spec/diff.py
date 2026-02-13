@@ -42,8 +42,8 @@ def missmatch(diffs: dict[Location, Diff]) -> dict[Location, MissMatch]:
 
 
 def diff(a: Any, b: Any, loc: Location = ()) -> dict[Location, Diff]:
+    ret: dict[Location, Diff] = {}
     if isinstance(a, dict) and isinstance(b, dict):
-        ret = {}
         for k in (*a, *(k for k in b if k not in a)):
             key: Location = (*loc, k)
             if k not in b:
@@ -53,11 +53,10 @@ def diff(a: Any, b: Any, loc: Location = ()) -> dict[Location, Diff]:
             else:
                 nested = diff(a[k], b[k], key)
                 if nested:
-                    ret |= {k: v for (k, v) in nested.items()}
+                    ret |= nested
         return ret
     elif isinstance(a, list) and isinstance(b, list):
         n = min(len(a), len(b))
-        ret = {}
         for i in range(n):
             nested = diff(a[i], b[i], (*loc, str(i)))
             if nested:
