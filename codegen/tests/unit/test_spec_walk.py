@@ -13,7 +13,7 @@ yaml = YAML(typ="safe")
 
 @pytest.fixture
 def walk_data() -> dict[str, Any]:
-    walk = Path(__file__).parent.absolute() / "fixtures" / "walk"
+    walk = Path(__file__).parent.parent.absolute() / "fixtures" / "walk"
     # return {file.stem: yaml.load(file) for file in walk.iterdir()}
     return {file.stem: file.absolute() for file in walk.iterdir()}
 

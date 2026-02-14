@@ -5,7 +5,7 @@ from jsmn_forge.bundle import bundle
 
 def test_bundle_scan() -> None:
     """Test that bundle discovers all workspace modules and creates registry."""
-    fixture = Path(__file__).parent.absolute() / "fixtures" / "workspace"
+    fixture = Path(__file__).parent.parent.absolute() / "fixtures" / "workspace"
     project = [fixture / module for module in fixture.iterdir()]
     registry = bundle("forge", project)
     resolver = registry.resolver()

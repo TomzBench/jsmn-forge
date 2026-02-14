@@ -1,0 +1,37 @@
+$id: "urn:pointer-test"
+
+# --- plain nested path ---
+components:
+  schemas:
+    widget:
+      type: object
+      properties:
+        name:
+          type: string
+
+# --- path keys contain slashes and braces ---
+paths:
+  /items:
+    get:
+      operationId: listItems
+  /items/{id}:
+    get:
+      operationId: getItem
+      parameters:
+        - name: id
+          in: path
+
+# --- tilde in key ---
+x~ext:
+  flag: true
+
+# --- tilde AND slash in same key ---
+x~/combo:
+  ok: true
+
+# --- deep $defs nesting ---
+$defs:
+  inner:
+    $defs:
+      leaf:
+        type: integer
