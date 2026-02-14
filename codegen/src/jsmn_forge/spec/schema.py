@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from .node import MapNode, SchemaNode, _NO_BHV, data
+from .node import _NO_BHV, Behavior, MapNode, SchemaNode, data
 from .sort import canonical
-from .walk import Behavior
 
 # ---------------------------------------------------------------------------
 # Instances

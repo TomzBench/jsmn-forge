@@ -3,6 +3,9 @@ from typing import Any
 
 import pytest
 from jsmn_forge.spec import diff, merge
+from jsmn_forge.spec.node import _NO_BHV
+from jsmn_forge.spec.openapi_3_1 import obj_root
+from jsmn_forge.spec.walk import normalize
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
@@ -96,6 +99,40 @@ def test_merge_conflict(walk_data: dict[str, Any]) -> None:
     # parameter with same (in, name) but different schema
     assert ("paths", "/items", "get", "parameters") in locs
     assert len(result.conflicts) == 3
+
+
+def test_ref_rewriting(walk_data: dict[str, Any]) -> None:
+    """$ref values are rewritten in schema-aware contexts but left
+    untouched inside data traps (default, x-*)."""
+    raw = yaml.load(walk_data["refs"])
+    result = normalize(raw, (obj_root, _NO_BHV), scheme="forge")
+    schemas = result["components"]["schemas"]
+
+    # Direct $ref — local, unchanged
+    assert schemas["direct"]["$ref"] == "#/components/schemas/target"
+
+    # Properties: local unchanged, external rewritten
+    props = schemas["in_properties"]["properties"]
+    assert props["local"]["$ref"] == "#/components/schemas/target"
+    assert (
+        props["external"]["$ref"]
+        == "./sdk.openapi.yaml#/components/schemas/Foo"
+    )
+
+    # allOf: scheme ref rewritten, relative ref collapsed to fragment
+    allOf = schemas["in_properties"]["allOf"]
+    refs = sorted(item["$ref"] for item in allOf)
+    assert "#/components/schemas/Baz" in refs
+    assert "./sdk.openapi.yaml#/components/schemas/Bar" in refs
+
+    # $ref with sibling keys — ref rewritten, siblings preserved
+    assert schemas["with_siblings"]["$ref"] == "#/components/schemas/target"
+    assert schemas["with_siblings"]["description"] == "has sibling keys"
+
+    # Data traps — $ref is just data, NOT rewritten
+    traps = schemas["data_traps"]
+    assert traps["default"]["$ref"] == "#/not_a_real_ref"
+    assert traps["x-meta"]["$ref"] == "forge://sdk/common/v0#/not_a_real_ref"
 
 
 def test_schema_dispatch(walk_data: dict[str, Any]) -> None:

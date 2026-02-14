@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 from ruamel.yaml import YAML
 
-from .node import _NO_BHV, MapNode, ObjectNode, data
+from .node import _NO_BHV, Behavior, MapNode, ObjectNode, data
 from .schema import map_schema, schema
 from .sort import canonical, identity_key
-from .walk import Behavior, behavior_sort
 from .walk import MergeConflict as _MergeConflict
 from .walk import merge as _merge
+from .walk import normalize
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -59,83 +59,83 @@ map_scope = MapNode("map_scope")
 
 # fmt: off
 obj_root.configure(table={
-    "paths":                        (map_path_item, _NO_BHV),
-    "webhooks":                     (map_path_item, _NO_BHV),
-    "components":                   (obj_components, _NO_BHV),
-    "servers":                      (obj_server, _NO_BHV),
-    "security":                     (map_scope, Behavior(sort_key=canonical)),
+    "paths":            (map_path_item, _NO_BHV),
+    "webhooks":         (map_path_item, _NO_BHV),
+    "components":       (obj_components, _NO_BHV),
+    "servers":          (obj_server, _NO_BHV),
+    "security":         (map_scope, Behavior(sort_key=canonical)),
 })
 
 obj_info.configure(table={})
 
 obj_components.configure(table={
-    "schemas":                      (map_schema, _NO_BHV),
-    "parameters":                   (map_parameter, _NO_BHV),
-    "headers":                      (map_header, _NO_BHV),
-    "requestBodies":                (map_request_body, _NO_BHV),
-    "responses":                    (map_response, _NO_BHV),
-    "pathItems":                    (map_path_item, _NO_BHV),
-    "callbacks":                    (map_callback, _NO_BHV),
-    "links":                        (map_link, _NO_BHV),
+    "schemas":          (map_schema, _NO_BHV),
+    "parameters":       (map_parameter, _NO_BHV),
+    "headers":          (map_header, _NO_BHV),
+    "requestBodies":    (map_request_body, _NO_BHV),
+    "responses":        (map_response, _NO_BHV),
+    "pathItems":        (map_path_item, _NO_BHV),
+    "callbacks":        (map_callback, _NO_BHV),
+    "links":            (map_link, _NO_BHV),
 })
 
 obj_path_item.configure(table={
-    "get":                          (obj_operation, _NO_BHV),
-    "put":                          (obj_operation, _NO_BHV),
-    "post":                         (obj_operation, _NO_BHV),
-    "delete":                       (obj_operation, _NO_BHV),
-    "options":                      (obj_operation, _NO_BHV),
-    "head":                         (obj_operation, _NO_BHV),
-    "patch":                        (obj_operation, _NO_BHV),
-    "trace":                        (obj_operation, _NO_BHV),
-    "parameters":                   (obj_parameter, Behavior(sort_key=_param_key)),
-    "servers":                      (obj_server, _NO_BHV),
+    "get":              (obj_operation, _NO_BHV),
+    "put":              (obj_operation, _NO_BHV),
+    "post":             (obj_operation, _NO_BHV),
+    "delete":           (obj_operation, _NO_BHV),
+    "options":          (obj_operation, _NO_BHV),
+    "head":             (obj_operation, _NO_BHV),
+    "patch":            (obj_operation, _NO_BHV),
+    "trace":            (obj_operation, _NO_BHV),
+    "parameters":       (obj_parameter, Behavior(sort_key=_param_key)),
+    "servers":          (obj_server, _NO_BHV),
 })
 
 obj_operation.configure(table={
-    "requestBody":                  (obj_request_body, _NO_BHV),
-    "responses":                    (map_response, _NO_BHV),
-    "callbacks":                    (map_callback, _NO_BHV),
-    "parameters":                   (obj_parameter, Behavior(sort_key=_param_key)),
-    "servers":                      (obj_server, _NO_BHV),
-    "security":                     (map_scope, Behavior(sort_key=canonical)),
-    "tags":                         (data, Behavior(sort_key=str)),
+    "requestBody":      (obj_request_body, _NO_BHV),
+    "responses":        (map_response, _NO_BHV),
+    "callbacks":        (map_callback, _NO_BHV),
+    "parameters":       (obj_parameter, Behavior(sort_key=_param_key)),
+    "servers":          (obj_server, _NO_BHV),
+    "security":         (map_scope, Behavior(sort_key=canonical)),
+    "tags":             (data, Behavior(sort_key=str)),
 })
 
 obj_parameter.configure(table={
-    "schema":                       (schema, _NO_BHV),
-    "content":                      (map_content, _NO_BHV),
+    "schema":           (schema, _NO_BHV),
+    "content":          (map_content, _NO_BHV),
 })
 
 obj_request_body.configure(table={
-    "content":                      (map_content, _NO_BHV),
+    "content":          (map_content, _NO_BHV),
 })
 
 obj_response.configure(table={
-    "content":                      (map_content, _NO_BHV),
-    "headers":                      (map_header, _NO_BHV),
-    "links":                        (map_link, _NO_BHV),
+    "content":          (map_content, _NO_BHV),
+    "headers":          (map_header, _NO_BHV),
+    "links":            (map_link, _NO_BHV),
 })
 
 obj_media_type.configure(table={
-    "schema":                       (schema, _NO_BHV),
-    "encoding":                     (map_encoding, _NO_BHV),
+    "schema":           (schema, _NO_BHV),
+    "encoding":         (map_encoding, _NO_BHV),
 })
 
 obj_encoding.configure(table={
-    "headers":                      (map_header, _NO_BHV),
+    "headers":          (map_header, _NO_BHV),
 })
 
 obj_server.configure(table={
-    "variables":                    (map_server_var, _NO_BHV),
+    "variables":        (map_server_var, _NO_BHV),
 })
 
 obj_server_var.configure(table={
-    "enum":                         (data, Behavior(sort_key=str)),
+    "enum":             (data, Behavior(sort_key=str)),
 })
 
 obj_link.configure(table={
-    "server":                       (obj_server, _NO_BHV),
+    "server":           (obj_server, _NO_BHV),
 })
 
 map_path_item.configure(child=obj_path_item)
@@ -200,12 +200,12 @@ def upgrade_conflict(file: Path) -> Callable[[_MergeConflict], MergeConflict]:
     return upgrader
 
 
-def merge(*args: Path) -> MergeResult:
+def merge(*args: Path, scheme: str | None = None) -> MergeResult:
     root = (obj_root, _NO_BHV)
 
     def sort_step(acc: NormalizeResult, next: Path) -> NormalizeResult:
         try:
-            behavior_sorted = behavior_sort(yaml.load(next), root)
+            behavior_sorted = normalize(yaml.load(next), root, scheme=scheme)
             spec = Specification(next, behavior_sorted)
             acc[0].append(spec)
         except FileNotFoundError:

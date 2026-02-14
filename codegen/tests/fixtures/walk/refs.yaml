@@ -1,0 +1,23 @@
+components:
+  schemas:
+    direct:
+      $ref: "#/components/schemas/target"
+    in_properties:
+      type: object
+      properties:
+        local:
+          $ref: "#/components/schemas/target"
+        external:
+          $ref: "forge://sdk/common/v0#/components/schemas/Foo"
+      allOf:
+        - $ref: "forge://sdk/common/v0#/components/schemas/Bar"
+        - $ref: "./local.yaml#/components/schemas/Baz"
+    with_siblings:
+      $ref: "#/components/schemas/target"
+      description: "has sibling keys"
+    data_traps:
+      type: object
+      default:
+        $ref: "#/not_a_real_ref"
+      x-meta:
+        $ref: "forge://sdk/common/v0#/not_a_real_ref"

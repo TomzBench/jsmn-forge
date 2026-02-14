@@ -2,18 +2,15 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, NamedTuple, Protocol
+from typing import TYPE_CHECKING, Any, NamedTuple
+
+from .node import Behavior, ConflictPolicy, Node
+from .ref import Ref
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from .diff import Location
-
-
-class ConflictPolicy(Enum):
-    KEEP = auto()
-    REPLACE = auto()
 
 
 @dataclass
@@ -28,44 +25,40 @@ class MergeResult(NamedTuple):
     conflicts: list[MergeConflict]
 
 
-@dataclass(frozen=True)
-class Behavior:
-    sort_key: Callable[[Any], str] | None
-    conflict_policy: ConflictPolicy = ConflictPolicy.KEEP
-
-
-class Transition(Protocol):
-    def __call__(self, prop: str) -> tuple[Transition, Behavior]: ...
-
-
-def behavior_sort(
+def normalize(
     obj: Any,
-    context: tuple[Transition, Behavior],
+    context: tuple[Node, Behavior],
     loc: Location = (),
+    *,
+    scheme: str | None = None,
 ) -> Any:
-    (transition, behavior) = context
+    (node, behavior) = context
     if isinstance(obj, dict):
-        return {
-            key: behavior_sort(val, transition(key), (*loc, key))
-            for (key, val) in obj.items()
-        }
+        out: dict[str, Any] = {}
+        for key, val in obj.items():
+            if key == "$ref" and not node.opaque:
+                out[key] = (
+                    Ref(val).normalize(scheme or "forge")
+                    if isinstance(val, str)
+                    else val
+                )
+            else:
+                out[key] = normalize(val, node(key), (*loc, key), scheme=scheme)
+        return out
     if isinstance(obj, list):
         sort_key = behavior.sort_key
         items = [
-            behavior_sort(item, context, (*loc, str(i)))
+            normalize(item, context, (*loc, str(i)), scheme=scheme)
             for i, item in enumerate(obj)
         ]
         return sorted(items, key=sort_key) if sort_key else items
-
-    if isinstance(obj, str) and obj == "$ref":
-        return "foo"
     return obj
 
 
 def _merge_dict(
     dst: dict[str, Any],
     src: dict[str, Any],
-    transition: Transition,
+    node: Node,
     loc: Location = (),
 ) -> MergeResult:
     result = dict(dst)
@@ -74,7 +67,7 @@ def _merge_dict(
         if k not in result:
             result[k] = deepcopy(v)
         else:
-            child = transition(k)
+            child = node(k)
             child_loc = (*loc, k)
             (x, c) = merge(result[k], v, child, child_loc)
             conflicts.extend(c)
@@ -110,7 +103,7 @@ def _merge_set_like(
 def _merge_list(
     dst: list[Any],
     src: list[Any],
-    context: tuple[Transition, Behavior],
+    context: tuple[Node, Behavior],
     loc: Location = (),
 ) -> MergeResult:
     conflicts: list[MergeConflict] = []
@@ -128,12 +121,12 @@ def _merge_list(
 def merge(
     dst: Any,
     src: Any,
-    context: tuple[Transition, Behavior],
+    context: tuple[Node, Behavior],
     loc: Location = (),
 ) -> MergeResult:
-    (transition, behavior) = context
+    (node, behavior) = context
     if isinstance(dst, dict) and isinstance(src, dict):
-        return _merge_dict(dst, src, transition, loc)
+        return _merge_dict(dst, src, node, loc)
 
     if isinstance(dst, list) and isinstance(src, list):
         sort_key, conflict_policy = behavior.sort_key, behavior.conflict_policy
