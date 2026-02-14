@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from .diff import Location
+    from .location import Location
 
 _param_key = identity_key("in", "name")
 

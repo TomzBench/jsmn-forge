@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 
+from .location import ROOT, Location
+
 
 @dataclass
 class Missing:
@@ -19,7 +21,6 @@ class MissMatch:
 
 
 type Diff = Missing | Extra | MissMatch
-type Location = tuple[str, ...]
 
 
 def _filter_diff[D: Diff](
@@ -41,11 +42,11 @@ def missmatch(diffs: dict[Location, Diff]) -> dict[Location, MissMatch]:
     return _filter_diff(diffs, MissMatch)
 
 
-def diff(a: Any, b: Any, loc: Location = ()) -> dict[Location, Diff]:
+def diff(a: Any, b: Any, loc: Location = ROOT) -> dict[Location, Diff]:
     ret: dict[Location, Diff] = {}
     if isinstance(a, dict) and isinstance(b, dict):
         for k in (*a, *(k for k in b if k not in a)):
-            key: Location = (*loc, k)
+            key: Location = loc.push(k)
             if k not in b:
                 ret[key] = Missing(a[k])
             elif k not in a:
@@ -58,11 +59,11 @@ def diff(a: Any, b: Any, loc: Location = ()) -> dict[Location, Diff]:
     elif isinstance(a, list) and isinstance(b, list):
         n = min(len(a), len(b))
         for i in range(n):
-            nested = diff(a[i], b[i], (*loc, str(i)))
+            nested = diff(a[i], b[i], loc.push(str(i)))
             if nested:
                 ret |= nested
-        ret |= {(*loc, str(i)): Missing(a[i]) for i in range(n, len(a))}
-        ret |= {(*loc, str(i)): Extra(b[i]) for i in range(n, len(b))}
+        ret |= {loc.push(str(i)): Missing(a[i]) for i in range(n, len(a))}
+        ret |= {loc.push(str(i)): Extra(b[i]) for i in range(n, len(b))}
         return ret
     elif a != b:
         return {loc: MissMatch(a, b)}

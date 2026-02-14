@@ -4,13 +4,12 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, NamedTuple
 
+from .location import ROOT, Location
 from .node import Behavior, ConflictPolicy, Node
 from .ref import Ref
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from .diff import Location
 
 
 @dataclass
@@ -28,7 +27,7 @@ class MergeResult(NamedTuple):
 def normalize(
     obj: Any,
     context: tuple[Node, Behavior],
-    loc: Location = (),
+    loc: Location = ROOT,
     *,
     scheme: str | None = None,
 ) -> Any:
@@ -43,12 +42,17 @@ def normalize(
                     else val
                 )
             else:
-                out[key] = normalize(val, node(key), (*loc, key), scheme=scheme)
+                out[key] = normalize(
+                    val,
+                    node(key),
+                    loc.push(key),
+                    scheme=scheme,
+                )
         return out
     if isinstance(obj, list):
         sort_key = behavior.sort_key
         items = [
-            normalize(item, context, (*loc, str(i)), scheme=scheme)
+            normalize(item, context, loc.push(str(i)), scheme=scheme)
             for i, item in enumerate(obj)
         ]
         return sorted(items, key=sort_key) if sort_key else items
@@ -59,7 +63,7 @@ def _merge_dict(
     dst: dict[str, Any],
     src: dict[str, Any],
     node: Node,
-    loc: Location = (),
+    loc: Location = ROOT,
 ) -> MergeResult:
     result = dict(dst)
     conflicts: list[MergeConflict] = []
@@ -68,7 +72,7 @@ def _merge_dict(
             result[k] = deepcopy(v)
         else:
             child = node(k)
-            child_loc = (*loc, k)
+            child_loc = loc.push(k)
             (x, c) = merge(result[k], v, child, child_loc)
             conflicts.extend(c)
             result[k] = x
@@ -80,7 +84,7 @@ def _merge_set_like(
     src: list[Any],
     sort_key: Callable[[Any], str],
     conflict_policy: ConflictPolicy,
-    loc: Location = (),
+    loc: Location = ROOT,
 ) -> MergeResult:
     # NOTE sort_key is behaving like an "identity"
     #      convert list into dict for set like symantics
@@ -104,14 +108,14 @@ def _merge_list(
     dst: list[Any],
     src: list[Any],
     context: tuple[Node, Behavior],
-    loc: Location = (),
+    loc: Location = ROOT,
 ) -> MergeResult:
     conflicts: list[MergeConflict] = []
     lresult = list(dst)
     n = min(len(dst), len(src))
     for i in range(n):
         if lresult[i] != src[i]:
-            (x, c) = merge(lresult[i], src[i], context, (*loc, str(i)))
+            (x, c) = merge(lresult[i], src[i], context, loc.push(str(i)))
             conflicts.extend(c)
             lresult[i] = x
     lresult += [deepcopy(x) for x in src[n:]]
@@ -122,7 +126,7 @@ def merge(
     dst: Any,
     src: Any,
     context: tuple[Node, Behavior],
-    loc: Location = (),
+    loc: Location = ROOT,
 ) -> MergeResult:
     (node, behavior) = context
     if isinstance(dst, dict) and isinstance(src, dict):
