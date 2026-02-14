@@ -8,6 +8,7 @@ from .diff import (
     missing,
     missmatch,
 )
+from .openapi_3_1 import merge
 from .sort import SortKey, canonical, identity_key, sort_set, sort_set_by
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "diff",
     "extra",
     "identity_key",
+    "merge",
     "missing",
     "missmatch",
     "sort_set",

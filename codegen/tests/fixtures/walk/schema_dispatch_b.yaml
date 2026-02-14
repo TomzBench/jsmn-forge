@@ -1,0 +1,28 @@
+components:
+  schemas:
+    gadget:
+      type: object
+      properties:
+        name:
+          type: string
+          default:
+            required:
+              - zebra
+              - apple
+          x-meta:
+            tags:
+              - beta
+              - alpha
+      dependentRequired:
+        name:
+          - desc
+          - label
+      $defs:
+        mode:
+          type: string
+          enum:
+            - off
+            - on
+          examples:
+            - off
+            - on

@@ -1,0 +1,14 @@
+openapi: "3.1.0"
+info:
+  title: Test API
+  version: "1.0.0"
+components:
+  schemas:
+    alpha:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 64

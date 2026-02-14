@@ -1,0 +1,13 @@
+tags:
+  - name: beta
+  - name: alpha
+servers:
+  - url: https://primary.example.com
+  - url: https://fallback.example.com
+components:
+  schemas:
+    point:
+      type: array
+      prefixItems:
+        - type: number
+        - type: string

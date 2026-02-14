@@ -115,7 +115,7 @@ def bundle(scheme: str, workspace: list[Path] | list[str]) -> Registry:
         _parse_workspace(module, path)
         for module in workspace
         for path in Path(module).iterdir()
-        if RE_CONFIG.match(str(path))
+        if RE_CONFIG.match(path.name)
     ]
 
     # flatten resources into a keyable registry

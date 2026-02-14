@@ -1,80 +1,48 @@
 from __future__ import annotations
 
-from jsmn_forge.spec.sort import SortKey, canonical
-from jsmn_forge.spec.walk import Behavior, Transition
-
-_NO_BHV = Behavior(sort_key=None)
-
+from .node import MapNode, SchemaNode, _NO_BHV, data
+from .sort import canonical
+from .walk import Behavior
 
 # ---------------------------------------------------------------------------
-# Sort keys for schema keywords
+# Instances
 # ---------------------------------------------------------------------------
+
+map_schema = MapNode("map_schema")
+map_string_set = MapNode("map_string_set")
+schema = SchemaNode("schema")
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+map_schema.configure(child=schema)
+map_string_set.configure(child=data, behavior=Behavior(sort_key=str))
 
 # fmt: off
-_SORT: dict[str, SortKey] = {
-    "required":                     str,
-    "enum":                         canonical,
-    "type":                         str,
-    "anyOf":                        canonical,
-    "oneOf":                        canonical,
-    "allOf":                        canonical,
-    "examples":                     canonical,
-}
-# fmt: on
-
-
-# ---------------------------------------------------------------------------
-# Transitions
-# ---------------------------------------------------------------------------
-
-
-def data(prop: str) -> tuple[Transition, Behavior]:
-    """Opaque data — trap state. All children are more data."""
-    return (data, _NO_BHV)
-
-
-def map_schema(prop: str) -> tuple[Transition, Behavior]:
-    """Map where all values are JSON Schemas ({name: Schema})."""
-    return (schema, _NO_BHV)
-
-
-def map_string_set(prop: str) -> tuple[Transition, Behavior]:
-    """Map where all values are sorted string arrays ({name: string[]})."""
-    return (data, Behavior(sort_key=str))
-
-
-# fmt: off
-_KEYWORDS: dict[str, Transition] = {
+schema.configure(keywords={
     # Sub-schema maps (user-defined keys → schemas)
-    "properties":               map_schema,
-    "$defs":                    map_schema,
-    "patternProperties":        map_schema,
-    "dependentSchemas":         map_schema,
+    "properties":               (map_schema, _NO_BHV),
+    "$defs":                    (map_schema, _NO_BHV),
+    "patternProperties":        (map_schema, _NO_BHV),
+    "dependentSchemas":         (map_schema, _NO_BHV),
     # String set map
-    "dependentRequired":        map_string_set,
+    "dependentRequired":        (map_string_set, _NO_BHV),
     # Data-carrying keywords
-    "default":                  data,
-    "example":                  data,
-    "const":                    data,
-    "examples":                 data,
+    "default":                  (data, _NO_BHV),
+    "example":                  (data, _NO_BHV),
+    "const":                    (data, _NO_BHV),
+    "examples":                 (data, Behavior(sort_key=canonical)),
     # OpenAPI / AsyncAPI extensions (objects, not schemas)
-    "discriminator":            data,
-    "xml":                      data,
-    "externalDocs":             data,
-}
+    "discriminator":            (data, _NO_BHV),
+    "xml":                      (data, _NO_BHV),
+    "externalDocs":             (data, _NO_BHV),
+    # Set-like arrays (sorted)
+    "required":                 (schema, Behavior(sort_key=str)),
+    "enum":                     (schema, Behavior(sort_key=canonical)),
+    "type":                     (schema, Behavior(sort_key=str)),
+    "anyOf":                    (schema, Behavior(sort_key=canonical)),
+    "oneOf":                    (schema, Behavior(sort_key=canonical)),
+    "allOf":                    (schema, Behavior(sort_key=canonical)),
+})
 # fmt: on
-
-
-def schema(prop: str) -> tuple[Transition, Behavior]:
-    """JSON Schema keyword dispatch.
-
-    - Unrecognized keywords → schema (sub-schemas)
-    - x-* extensions → data
-    - Known keywords (schema maps, string sets, data) → resolved here
-    """
-    if prop.startswith("x-"):
-        return (data, _NO_BHV)
-    sort = _SORT.get(prop)
-    bhv = Behavior(sort_key=sort) if sort else _NO_BHV
-    kw = _KEYWORDS.get(prop)
-    return (kw, bhv) if kw else (schema, bhv)

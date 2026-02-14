@@ -1,0 +1,21 @@
+components:
+  schemas:
+    widget:
+      type: object
+      required:
+        - alpha
+        - beta
+      properties:
+        alpha:
+          type:
+            - string
+            - "null"
+          enum:
+            - fast
+            - slow
+        beta:
+          oneOf:
+            - type: string
+              maxLength: 32
+            - type: integer
+              format: int32

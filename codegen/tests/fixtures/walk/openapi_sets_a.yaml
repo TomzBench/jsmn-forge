@@ -1,0 +1,29 @@
+servers:
+  - url: https://api.example.com/{env}
+    variables:
+      env:
+        default: prod
+        enum:
+          - staging
+          - prod
+paths:
+  /items:
+    get:
+      operationId: listItems
+      tags:
+        - inventory
+        - admin
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: id
+          in: path
+          schema:
+            type: string
+      security:
+        - apiKey: []
+        - oauth:
+            - write
+            - read
