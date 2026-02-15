@@ -1,3 +1,4 @@
+from .behavior import SortKey, canonical, identity_key, sort_set, sort_set_by
 from .diff import (
     Diff,
     Extra,
@@ -9,7 +10,6 @@ from .diff import (
     missmatch,
 )
 from .openapi_3_1 import merge
-from .sort import SortKey, canonical, identity_key, sort_set, sort_set_by
 
 __all__ = [
     "Diff",

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from .behavior import canonical
 from .node import _NO_BHV, Behavior, MapNode, SchemaNode, data
-from .sort import canonical
 
 # ---------------------------------------------------------------------------
 # Instances

@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 from ruamel.yaml import YAML
 
+from .behavior import canonical, identity_key
+from .merge import MergeConflict as _MergeConflict
+from .merge import merge as _merge
 from .node import _NO_BHV, Behavior, MapNode, ObjectNode, data
+from .normalize import normalize
 from .schema import map_schema, schema
-from .sort import canonical, identity_key
-from .walk import MergeConflict as _MergeConflict
-from .walk import merge as _merge
-from .walk import normalize
 
 if TYPE_CHECKING:
     from collections.abc import Callable

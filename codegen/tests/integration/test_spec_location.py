@@ -2,11 +2,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from jsmn_forge.spec.location import Location
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 from ruamel.yaml import YAML
-
-from jsmn_forge.spec.location import Location
 
 yaml = YAML(typ="safe")
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "location"

@@ -4,8 +4,8 @@ from typing import Any
 import pytest
 from jsmn_forge.spec import diff, merge
 from jsmn_forge.spec.node import _NO_BHV
+from jsmn_forge.spec.normalize import normalize
 from jsmn_forge.spec.openapi_3_1 import obj_root
-from jsmn_forge.spec.walk import normalize
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
@@ -18,7 +18,7 @@ def walk_data() -> dict[str, Any]:
     return {file.stem: file.absolute() for file in walk.iterdir()}
 
 
-def test_schema_sets(walk_data: dict[str, Any]) -> None:
+def test_merge_schema_sets(walk_data: dict[str, Any]) -> None:
     """Schema-level set arrays (required, enum, type, oneOf) normalize
     to the same result regardless of authoring order."""
     test_files = (walk_data["schema_sets_a"], walk_data["schema_sets_b"])
@@ -34,7 +34,7 @@ def test_schema_sets(walk_data: dict[str, Any]) -> None:
     assert widget["properties"]["beta"]["oneOf"][1]["type"] == "string"
 
 
-def test_openapi_sets(walk_data: dict[str, Any]) -> None:
+def test_merge_openapi_sets(walk_data: dict[str, Any]) -> None:
     """OpenAPI-level set arrays (parameters, tags, security, scopes,
     server_var.enum) normalize equivalently regardless of order."""
     test_files = (walk_data["openapi_sets_a"], walk_data["openapi_sets_b"])
@@ -57,7 +57,7 @@ def test_openapi_sets(walk_data: dict[str, Any]) -> None:
     assert server_var["enum"] == ["prod", "staging"]
 
 
-def test_ordered(walk_data: dict[str, Any]) -> None:
+def test_merge_ordered(walk_data: dict[str, Any]) -> None:
     """Ordered arrays (servers, prefixItems, root tags) must NOT be
     sorted by normalize — different authoring order stays different."""
     a = walk_data["ordered_a"]
@@ -135,7 +135,7 @@ def test_ref_rewriting(walk_data: dict[str, Any]) -> None:
     assert traps["x-meta"]["$ref"] == "forge://sdk/common/v0#/not_a_real_ref"
 
 
-def test_schema_dispatch(walk_data: dict[str, Any]) -> None:
+def test_merge_schema_dispatch(walk_data: dict[str, Any]) -> None:
     """Data traps (default, x-*) preserve content unchanged while
     schema-aware paths (dependentRequired, $defs, enum, examples) sort."""
     test_files = (

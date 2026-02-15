@@ -1,5 +1,4 @@
 import pytest
-
 from jsmn_forge.spec.location import ROOT, Location
 
 # --- to_pointer ---
