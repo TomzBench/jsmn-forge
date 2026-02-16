@@ -4,8 +4,8 @@ from typing import Any
 import pytest
 from jsmn_forge.spec import diff, merge
 from jsmn_forge.spec.node import _NO_BHV
-from jsmn_forge.spec.normalize import normalize
 from jsmn_forge.spec.openapi_3_1 import obj_root
+from jsmn_forge.walk.normalize import normalize
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")

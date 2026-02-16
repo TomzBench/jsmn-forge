@@ -8,11 +8,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# ---------------------------------------------------------------------------
-# Types shared by nodes and walkers
-# ---------------------------------------------------------------------------
-
-
 class ConflictPolicy(Enum):
     KEEP = auto()
     REPLACE = auto()
@@ -26,38 +21,43 @@ class Behavior:
 
 class Node(Protocol):
     @property
+    def kind(self) -> str: ...
+    @property
     def opaque(self) -> bool: ...
-    def __call__(self, prop: str) -> tuple[Node, Behavior]: ...
+    def child(self, prop: str) -> tuple[Node, Behavior]: ...
 
 
 _NO_BHV = Behavior(sort_key=None)
 
 
-# ---------------------------------------------------------------------------
-# Concrete nodes
-# ---------------------------------------------------------------------------
-
-
 class DataNode:
     opaque = True
 
-    def __init__(self, name: str = "data") -> None:
-        self._name = name
+    def __init__(self, kind: str = "data") -> None:
+        self._kind = kind
 
-    def __call__(self, prop: str) -> tuple[Node, Behavior]:
+    @property
+    def kind(self) -> str:
+        return self._kind
+
+    def child(self, prop: str) -> tuple[Node, Behavior]:
         return (self, _NO_BHV)
 
     def __repr__(self) -> str:
-        return self._name
+        return str(self._kind)
 
 
-class MapNode:
+class MapNode[E: str]:
     opaque = False
 
-    def __init__(self, name: str) -> None:
-        self._name = name
+    def __init__(self, kind: E) -> None:
+        self._kind = kind
         self._child: Node | None = None
         self._behavior: Behavior = _NO_BHV
+
+    @property
+    def kind(self) -> E:
+        return self._kind
 
     def configure(
         self,
@@ -67,20 +67,24 @@ class MapNode:
         self._child = child
         self._behavior = behavior
 
-    def __call__(self, prop: str) -> tuple[Node, Behavior]:
-        assert self._child is not None, f"{self._name} not configured"
+    def child(self, prop: str) -> tuple[Node, Behavior]:
+        assert self._child is not None, f"{self._kind} not configured"
         return (self._child, self._behavior)
 
     def __repr__(self) -> str:
-        return self._name
+        return str(self._kind)
 
 
-class ObjectNode:
+class ObjectNode[E: str]:
     opaque = False
 
-    def __init__(self, name: str) -> None:
-        self._name = name
+    def __init__(self, kind: E) -> None:
+        self._kind = kind
         self._table: dict[str, tuple[Node, Behavior]] = {}
+
+    @property
+    def kind(self) -> E:
+        return self._kind
 
     def configure(
         self,
@@ -88,40 +92,11 @@ class ObjectNode:
     ) -> None:
         self._table = table
 
-    def __call__(self, prop: str) -> tuple[Node, Behavior]:
+    def child(self, prop: str) -> tuple[Node, Behavior]:
         return self._table.get(prop, (data, _NO_BHV))
 
     def __repr__(self) -> str:
-        return self._name
-
-
-class SchemaNode:
-    """JSON Schema keyword dispatch.
-
-    - x-* extensions -> data
-    - Known keywords -> looked up in table
-    - Unknown keywords -> (self, _NO_BHV) (recursive, assume sub-schema)
-    """
-
-    opaque = False
-
-    def __init__(self, name: str = "schema") -> None:
-        self._name = name
-        self._keywords: dict[str, tuple[Node, Behavior]] = {}
-
-    def configure(
-        self,
-        keywords: dict[str, tuple[Node, Behavior]],
-    ) -> None:
-        self._keywords = keywords
-
-    def __call__(self, prop: str) -> tuple[Node, Behavior]:
-        if prop.startswith("x-"):
-            return (data, _NO_BHV)
-        return self._keywords.get(prop, (self, _NO_BHV))
-
-    def __repr__(self) -> str:
-        return self._name
+        return str(self._kind)
 
 
 # Module-level singleton: the universal trap state

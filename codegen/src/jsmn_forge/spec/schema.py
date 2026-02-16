@@ -1,15 +1,62 @@
 from __future__ import annotations
 
+from enum import StrEnum
+
 from .behavior import canonical
-from .node import _NO_BHV, Behavior, MapNode, SchemaNode, data
+from .node import _NO_BHV, Behavior, MapNode, Node, data
+
+
+class SchemaKind(StrEnum):
+    SCHEMA         = "schema"
+    MAP_SCHEMA     = "map_schema"
+    MAP_STRING_SET = "map_string_set"
+
+
+# ---------------------------------------------------------------------------
+# SchemaNode
+# ---------------------------------------------------------------------------
+
+
+class SchemaNode:
+    """JSON Schema keyword dispatch.
+
+    - x-* extensions -> data
+    - Known keywords -> looked up in table
+    - Unknown keywords -> (self, _NO_BHV) (recursive, assume sub-schema)
+    """
+
+    opaque = False
+
+    def __init__(self, kind: str = "schema") -> None:
+        self._kind = kind
+        self._keywords: dict[str, tuple[Node, Behavior]] = {}
+
+    @property
+    def kind(self) -> str:
+        return self._kind
+
+    def configure(
+        self,
+        keywords: dict[str, tuple[Node, Behavior]],
+    ) -> None:
+        self._keywords = keywords
+
+    def child(self, prop: str) -> tuple[Node, Behavior]:
+        if prop.startswith("x-"):
+            return (data, _NO_BHV)
+        return self._keywords.get(prop, (self, _NO_BHV))
+
+    def __repr__(self) -> str:
+        return str(self._kind)
+
 
 # ---------------------------------------------------------------------------
 # Instances
 # ---------------------------------------------------------------------------
 
-map_schema = MapNode("map_schema")
-map_string_set = MapNode("map_string_set")
-schema = SchemaNode("schema")
+map_schema     = MapNode(SchemaKind.MAP_SCHEMA)
+map_string_set = MapNode(SchemaKind.MAP_STRING_SET)
+schema         = SchemaNode(SchemaKind.SCHEMA)
 
 # ---------------------------------------------------------------------------
 # Configuration

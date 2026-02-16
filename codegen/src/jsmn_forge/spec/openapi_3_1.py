@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 from functools import reduce
 from typing import TYPE_CHECKING, Any, NamedTuple
 
 from ruamel.yaml import YAML
 
+from jsmn_forge.walk.merge import MergeConflict as _MergeConflict
+from jsmn_forge.walk.merge import merge as _merge
+from jsmn_forge.walk.normalize import normalize
+
 from .behavior import canonical, identity_key
-from .merge import MergeConflict as _MergeConflict
-from .merge import merge as _merge
 from .node import _NO_BHV, Behavior, MapNode, ObjectNode, data
-from .normalize import normalize
 from .schema import map_schema, schema
 
 if TYPE_CHECKING:
@@ -22,35 +24,64 @@ if TYPE_CHECKING:
 _param_key = identity_key("in", "name")
 
 
+class OpenAPIKind(StrEnum):
+    # Object nodes
+    ROOT             = "root"
+    INFO             = "info"
+    COMPONENTS       = "components"
+    PATH_ITEM        = "path_item"
+    OPERATION        = "operation"
+    PARAMETER        = "parameter"
+    REQUEST_BODY     = "request_body"
+    RESPONSE         = "response"
+    MEDIA_TYPE       = "media_type"
+    ENCODING         = "encoding"
+    SERVER           = "server"
+    SERVER_VAR       = "server_var"
+    LINK             = "link"
+    # Map nodes
+    MAP_PATH_ITEM    = "map_path_item"
+    MAP_RESPONSE     = "map_response"
+    MAP_CONTENT      = "map_content"
+    MAP_HEADER       = "map_header"
+    MAP_ENCODING     = "map_encoding"
+    MAP_PARAMETER    = "map_parameter"
+    MAP_REQUEST_BODY = "map_request_body"
+    MAP_LINK         = "map_link"
+    MAP_CALLBACK     = "map_callback"
+    MAP_SERVER_VAR   = "map_server_var"
+    MAP_SCOPE        = "map_scope"
+
+
 # ---------------------------------------------------------------------------
 # Phase 1: Create all node instances
 # ---------------------------------------------------------------------------
 
-obj_root = ObjectNode("obj_root")
-obj_info = ObjectNode("obj_info")
-obj_components = ObjectNode("obj_components")
-obj_path_item = ObjectNode("obj_path_item")
-obj_operation = ObjectNode("obj_operation")
-obj_parameter = ObjectNode("obj_parameter")
-obj_request_body = ObjectNode("obj_request_body")
-obj_response = ObjectNode("obj_response")
-obj_media_type = ObjectNode("obj_media_type")
-obj_encoding = ObjectNode("obj_encoding")
-obj_server = ObjectNode("obj_server")
-obj_server_var = ObjectNode("obj_server_var")
-obj_link = ObjectNode("obj_link")
+obj_root         = ObjectNode(OpenAPIKind.ROOT)
+obj_info         = ObjectNode(OpenAPIKind.INFO)
+obj_components   = ObjectNode(OpenAPIKind.COMPONENTS)
+obj_path_item    = ObjectNode(OpenAPIKind.PATH_ITEM)
+obj_operation    = ObjectNode(OpenAPIKind.OPERATION)
+obj_parameter    = ObjectNode(OpenAPIKind.PARAMETER)
+obj_request_body = ObjectNode(OpenAPIKind.REQUEST_BODY)
+obj_response     = ObjectNode(OpenAPIKind.RESPONSE)
+obj_media_type   = ObjectNode(OpenAPIKind.MEDIA_TYPE)
+obj_encoding     = ObjectNode(OpenAPIKind.ENCODING)
+obj_server       = ObjectNode(OpenAPIKind.SERVER)
+obj_server_var   = ObjectNode(OpenAPIKind.SERVER_VAR)
+obj_link         = ObjectNode(OpenAPIKind.LINK)
 
-map_path_item = MapNode("map_path_item")
-map_response = MapNode("map_response")
-map_content = MapNode("map_content")
-map_header = MapNode("map_header")
-map_encoding = MapNode("map_encoding")
-map_parameter = MapNode("map_parameter")
-map_request_body = MapNode("map_request_body")
-map_link = MapNode("map_link")
-map_callback = MapNode("map_callback")
-map_server_var = MapNode("map_server_var")
-map_scope = MapNode("map_scope")
+map_path_item    = MapNode(OpenAPIKind.MAP_PATH_ITEM)
+map_response     = MapNode(OpenAPIKind.MAP_RESPONSE)
+map_content      = MapNode(OpenAPIKind.MAP_CONTENT)
+map_header       = MapNode(OpenAPIKind.MAP_HEADER)
+map_encoding     = MapNode(OpenAPIKind.MAP_ENCODING)
+map_parameter    = MapNode(OpenAPIKind.MAP_PARAMETER)
+map_request_body = MapNode(OpenAPIKind.MAP_REQUEST_BODY)
+map_link         = MapNode(OpenAPIKind.MAP_LINK)
+map_callback     = MapNode(OpenAPIKind.MAP_CALLBACK)
+map_server_var   = MapNode(OpenAPIKind.MAP_SERVER_VAR)
+map_scope        = MapNode(OpenAPIKind.MAP_SCOPE)
 
 
 # ---------------------------------------------------------------------------
