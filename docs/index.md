@@ -7,9 +7,5 @@ heap allocation.
 ```{toctree}
 :maxdepth: 2
 
-design
-audit
-jsonschema-ref
-writing-schemas
-python-cheatsheet
+ai/index
 ```

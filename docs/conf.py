@@ -1,3 +1,5 @@
+from pathlib import Path
+
 project = "jsmn-forge"
 copyright = "2025, Altronix"
 author = "Altronix"
@@ -12,6 +14,10 @@ source_suffix = {
 }
 
 exclude_patterns = ["_build"]
+
+# Gracefully handle missing ai/local (gitignored, absent on fresh clone)
+if not (Path(__file__).parent / "ai" / "local").is_dir():
+    exclude_patterns.append("ai/local")
 
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]

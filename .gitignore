@@ -56,3 +56,6 @@ docs/_build/
 
 # Claude
 .claude/
+
+# AI local artifacts (conversations, drafts with PII)
+docs/ai/local/
