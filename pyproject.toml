@@ -17,8 +17,10 @@ dev = [
     "basedpyright>=1.22.0",
     "clang-format>=21.1.8",
     "cmake-format[yaml]>=0.6.13",
+    "import-linter>=2.10",
     "meson>=1.10.0",
     "mypy>=1.13.0",
+    "pyright>=1.1.408",
     "pytest>=9.0.2",
     "radon>=6.0.1",
     "ruff>=0.8.0",
@@ -35,3 +37,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["codegen/src/jsmn_forge"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"cmake/modules" = "jsmn_forge/cmake"

@@ -8,5 +8,6 @@
   "reportUnknownVariableType": false,
   "reportUnknownParameterType": false,
   "reportUnnecessaryIsInstance": "warning",
-  "reportUnnecessaryTypeIgnoreComment": "warning"
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+  "reportUnnecessaryComparison": "warning"
 }

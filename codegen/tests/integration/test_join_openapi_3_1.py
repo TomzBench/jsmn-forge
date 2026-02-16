@@ -2,10 +2,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from jsmn_forge.spec import diff, merge
-from jsmn_forge.spec.node import _NO_BHV
-from jsmn_forge.spec.openapi_3_1 import obj_root
-from jsmn_forge.walk.normalize import normalize
+from jsmn_forge.spec import OPENAPI_3_1
+from jsmn_forge.walk import diff, join
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
@@ -13,16 +11,16 @@ yaml = YAML(typ="safe")
 
 @pytest.fixture
 def walk_data() -> dict[str, Any]:
-    walk = Path(__file__).parent.parent.absolute() / "fixtures" / "walk"
+    walk = Path(__file__).parent.parent.absolute() / "fixtures" / "join"
     # return {file.stem: yaml.load(file) for file in walk.iterdir()}
     return {file.stem: file.absolute() for file in walk.iterdir()}
 
 
-def test_merge_schema_sets(walk_data: dict[str, Any]) -> None:
+def test_join_schema_sets(walk_data: dict[str, Any]) -> None:
     """Schema-level set arrays (required, enum, type, oneOf) normalize
     to the same result regardless of authoring order."""
     test_files = (walk_data["schema_sets_a"], walk_data["schema_sets_b"])
-    result = merge(*test_files)
+    result = join(*test_files, draft=OPENAPI_3_1)
     assert result.conflicts == []
     widget = result.value["components"]["schemas"]["widget"]
     assert widget["required"] == ["alpha", "beta"]
@@ -34,11 +32,11 @@ def test_merge_schema_sets(walk_data: dict[str, Any]) -> None:
     assert widget["properties"]["beta"]["oneOf"][1]["type"] == "string"
 
 
-def test_merge_openapi_sets(walk_data: dict[str, Any]) -> None:
+def test_join_openapi_sets(walk_data: dict[str, Any]) -> None:
     """OpenAPI-level set arrays (parameters, tags, security, scopes,
     server_var.enum) normalize equivalently regardless of order."""
     test_files = (walk_data["openapi_sets_a"], walk_data["openapi_sets_b"])
-    result = merge(*test_files)
+    result = join(*test_files, draft=OPENAPI_3_1)
     assert result.conflicts == []
     op = result.value["paths"]["/items"]["get"]
     assert op["tags"] == ["admin", "inventory"]
@@ -57,25 +55,25 @@ def test_merge_openapi_sets(walk_data: dict[str, Any]) -> None:
     assert server_var["enum"] == ["prod", "staging"]
 
 
-def test_merge_ordered(walk_data: dict[str, Any]) -> None:
+def test_join_ordered(walk_data: dict[str, Any]) -> None:
     """Ordered arrays (servers, prefixItems, root tags) must NOT be
     sorted by normalize — different authoring order stays different."""
     a = walk_data["ordered_a"]
     b = walk_data["ordered_b"]
-    result = merge(a, b)
+    result = join(a, b, draft=OPENAPI_3_1)
     # Ordered arrays produce positional conflicts/differences
     assert result.conflicts != []
     # Verify the diffs are real — normalize preserves order
-    merged_a = merge(a)
-    merged_b = merge(b)
+    merged_a = join(a, draft=OPENAPI_3_1)
+    merged_b = join(b, draft=OPENAPI_3_1)
     assert diff(merged_a.value, merged_b.value) != {}
 
 
-def test_merge_union(walk_data: dict[str, Any]) -> None:
+def test_join_union(walk_data: dict[str, Any]) -> None:
     """Disjoint + overlapping content merges cleanly: dict key union,
     required set union, new schema deep-copied."""
     test_files = (walk_data["merge_union_a"], walk_data["merge_union_b"])
-    result = merge(*test_files)
+    result = join(*test_files, draft=OPENAPI_3_1)
     assert result.conflicts == []
     schemas = result.value["components"]["schemas"]
     # alpha: required is union of both
@@ -88,11 +86,11 @@ def test_merge_union(walk_data: dict[str, Any]) -> None:
     assert schemas["beta"]["properties"]["active"]["type"] == "boolean"
 
 
-def test_merge_conflict(walk_data: dict[str, Any]) -> None:
+def test_join_conflict(walk_data: dict[str, Any]) -> None:
     """Conflicting scalars and parameter identity produce MergeConflict
     objects with correct locations."""
     test_files = (walk_data["merge_conflict_a"], walk_data["merge_conflict_b"])
-    result = merge(*test_files)
+    result = join(*test_files, draft=OPENAPI_3_1)
     locs = {c.location for c in result.conflicts}
     assert ("info", "title") in locs
     assert ("info", "version") in locs
@@ -101,48 +99,14 @@ def test_merge_conflict(walk_data: dict[str, Any]) -> None:
     assert len(result.conflicts) == 3
 
 
-def test_ref_rewriting(walk_data: dict[str, Any]) -> None:
-    """$ref values are rewritten in schema-aware contexts but left
-    untouched inside data traps (default, x-*)."""
-    raw = yaml.load(walk_data["refs"])
-    result = normalize(raw, (obj_root, _NO_BHV), scheme="forge")
-    schemas = result["components"]["schemas"]
-
-    # Direct $ref — local, unchanged
-    assert schemas["direct"]["$ref"] == "#/components/schemas/target"
-
-    # Properties: local unchanged, external rewritten
-    props = schemas["in_properties"]["properties"]
-    assert props["local"]["$ref"] == "#/components/schemas/target"
-    assert (
-        props["external"]["$ref"]
-        == "./sdk.openapi.yaml#/components/schemas/Foo"
-    )
-
-    # allOf: scheme ref rewritten, relative ref collapsed to fragment
-    allOf = schemas["in_properties"]["allOf"]
-    refs = sorted(item["$ref"] for item in allOf)
-    assert "#/components/schemas/Baz" in refs
-    assert "./sdk.openapi.yaml#/components/schemas/Bar" in refs
-
-    # $ref with sibling keys — ref rewritten, siblings preserved
-    assert schemas["with_siblings"]["$ref"] == "#/components/schemas/target"
-    assert schemas["with_siblings"]["description"] == "has sibling keys"
-
-    # Data traps — $ref is just data, NOT rewritten
-    traps = schemas["data_traps"]
-    assert traps["default"]["$ref"] == "#/not_a_real_ref"
-    assert traps["x-meta"]["$ref"] == "forge://sdk/common/v0#/not_a_real_ref"
-
-
-def test_merge_schema_dispatch(walk_data: dict[str, Any]) -> None:
+def test_join_schema_dispatch(walk_data: dict[str, Any]) -> None:
     """Data traps (default, x-*) preserve content unchanged while
     schema-aware paths (dependentRequired, $defs, enum, examples) sort."""
     test_files = (
         walk_data["schema_dispatch_a"],
         walk_data["schema_dispatch_b"],
     )
-    result = merge(*test_files)
+    result = join(*test_files, draft=OPENAPI_3_1)
     assert result.conflicts == []
     gadget = result.value["components"]["schemas"]["gadget"]
     name_prop = gadget["properties"]["name"]

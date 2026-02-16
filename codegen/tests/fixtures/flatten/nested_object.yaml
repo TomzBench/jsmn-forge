@@ -1,0 +1,23 @@
+openapi: "3.1.0"
+info:
+  title: Flatten nested object
+  version: "0.1.0"
+components:
+  schemas:
+    device:
+      type: object
+      required:
+        - id
+        - config
+      properties:
+        id:
+          type: number
+          format: uint32
+        config:
+          type: object
+          required:
+            - mode
+          properties:
+            mode:
+              type: number
+              format: uint8

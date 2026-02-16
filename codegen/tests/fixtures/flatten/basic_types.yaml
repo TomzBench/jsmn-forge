@@ -1,0 +1,25 @@
+openapi: "3.1.0"
+info:
+  title: Flatten basic types
+  version: "0.1.0"
+components:
+  schemas:
+    sensor:
+      type: object
+      required:
+        - enabled
+        - label
+        - reading
+        - status
+      properties:
+        enabled:
+          type: boolean
+        label:
+          type: string
+          maxLength: 32
+        reading:
+          type: number
+          format: double
+        status:
+          type: number
+          format: uint8
